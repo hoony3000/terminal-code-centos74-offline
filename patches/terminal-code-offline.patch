@@ -1,0 +1,64 @@
+diff --git a/src/ssh.ts b/src/ssh.ts
+index 2a13a2b..98f8ccc 100644
+--- a/src/ssh.ts
++++ b/src/ssh.ts
+@@ -39,7 +39,7 @@ export async function sshOpen(
+ 
+ export function sshForward(target: string, args: string[]): number {
+   const { destination, hostArgs } = resolveSshTarget(target);
+-  const tode = '"$HOME/.local/bin/tode"';
++  const tode = remoteTode();
+   const hint = `tode is not installed on ${destination}, run: tode --ssh ${target}`;
+   const command = [
+     `[ -x ${tode} ] || { echo '${hint}' >&2; exit 127; };`,
+@@ -50,6 +50,12 @@ export function sshForward(target: string, args: string[]): number {
+   return result.status ?? 1;
+ }
+ 
++function remoteTode(): string {
++  return process.env.TODE_REMOTE_BIN
++    ? shellQuote(process.env.TODE_REMOTE_BIN)
++    : '"$HOME/.local/bin/tode"';
++}
++
+ function writeBundle(
+   palette: TerminalPalette,
+   version: string,
+@@ -71,14 +77,13 @@ function writeBundle(
+     "ensure",
+     `#!/bin/sh
+ set -e
+-tode="$HOME/.local/bin/tode"
++tode=${remoteTode()}
+ want="$(cat "$(dirname "$0")/version")"
+ have="$("$tode" --version 2>/dev/null || true)"
+-if [ "$want" = dev ]; then
+-  [ -n "$have" ] || curl -fsSL https://tode.sh/install/dev | bash
+-elif [ "$have" != "$want" ]; then
+-  curl -fsSL "https://tode.sh/install/v/$want" | bash
+-fi
++[ "$have" = "$want" ] || {
++  echo "Install the matching offline remote bundle first (wanted $want, found $have)." >&2
++  exit 1
++}
+ "$tode" --help 2>/dev/null | grep -q -- --serve || {
+   echo "the tode on this server ($("$tode" --version 2>/dev/null)) does not support --serve" >&2
+   exit 1
+@@ -91,7 +96,7 @@ fi
+     `#!/bin/sh
+ set -e
+ ./ensure
+-"$HOME/.local/bin/tode" --serve --prepare --palette "$(pwd)/palette.json" --import "$(pwd)/profile"
++${remoteTode()} --serve --prepare --palette "$(pwd)/palette.json" --import "$(pwd)/profile"
+ `,
+     true,
+   );
+@@ -102,7 +107,7 @@ set -e
+ ./ensure
+ here="$(pwd)"
+ cd "$HOME"
+-exec "$HOME/.local/bin/tode" --serve --palette "$here/palette.json"${
++exec ${remoteTode()} --serve --palette "$here/palette.json"${
+       remotePath ? ` ${shellQuote(remotePath)}` : ""
+     }
+ `,

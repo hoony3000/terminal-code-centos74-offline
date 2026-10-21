@@ -1,0 +1,45 @@
+{
+  "bundle_version": "centos74-c6b14eb",
+  "terminal_code_commit": "c6b14ebeddf2c902138c301abc84f19ac52e20e9",
+  "terminal_browser_reference_commit": "660ec51e0ec0e5172338a2920e50089943882af4",
+  "pixel_npm": "0.0.23",
+  "electron_patched": "44.2.0",
+  "pixel_npm_source_commit": "fd5f1798b128cd71508aa534ddbf67caf05ec0b8",
+  "code_server": "4.132.0",
+  "node_from_code_server": "24.18.0",
+  "patchelf": "0.15.0",
+  "runtime_packages": [
+    {
+      "Package": "libc6",
+      "Version": "2.31-0ubuntu9.18",
+      "Filename": "pool/main/g/glibc/libc6_2.31-0ubuntu9.18_amd64.deb",
+      "SHA256": "1b2281aac4935dfea1f89dfc19e445fdbb45303202af60679ccb8bf035f081a0"
+    },
+    {
+      "Package": "libgcc-s1",
+      "Version": "10.5.0-1ubuntu1~20.04",
+      "Filename": "pool/main/g/gcc-10/libgcc-s1_10.5.0-1ubuntu1~20.04_amd64.deb",
+      "SHA256": "4aa7b9c9f3225df65a750ae0ff5c890fc6108c82a609b3c5abd45d211838bf3c"
+    },
+    {
+      "Package": "libstdc++6",
+      "Version": "10.5.0-1ubuntu1~20.04",
+      "Filename": "pool/main/g/gcc-10/libstdc++6_10.5.0-1ubuntu1~20.04_amd64.deb",
+      "SHA256": "7f9222342d3551d063bf651319ec397c39278eeeb9ab5950ae0e8c28ef0af431"
+    }
+  ],
+  "server_test": "CentOS 7.4.1708 / glibc 2.17 / WSL2 kernel 6.18.54.1 / x86_64 / uid 1000",
+  "client_prerequisites_not_bundled": [
+    "WSLg",
+    "Ubuntu 24.04",
+    "Ghostty or equivalent Kitty graphics terminal",
+    "working SSH authentication"
+  ],
+  "unverified": [
+    "company kernel 3.10",
+    "company policies",
+    "Korean IME",
+    "extensions",
+    "long sessions"
+  ]
+}

@@ -1,0 +1,44 @@
+terminal-code CentOS 7.4 오프라인 묶음 검사 결과
+검사일: 2026-10-21
+
+PASS - 원격 설치 압축파일을 CentOS 7.4의 새 경로에 풀고 일반 사용자로 설치
+PASS - 기본 사용자 폴더 설치와 사용자 bin 심볼릭 링크 실행
+PASS - WSL 클라이언트 설치 스크립트를 별도 경로에서 실행
+PASS - glibc 2.17 환경에서 별도 glibc 2.31을 사용하는 Node 24.18.0 실행
+PASS - code-server 4.132.0 / Code 1.132.0 버전 확인
+PASS - terminal-code --serve --prepare: 추가 다운로드 없이 준비
+PASS - node-pty에서 /bin/bash 실행 및 PTY_OK 출력
+PASS - node-pty 셸의 uid=1000, 시스템 glibc=2.17 확인
+PASS - 실제 SSH 연결: WSL Ubuntu -> WSL CentOS 7.4, 공개키 인증
+PASS - Ghostty의 Kitty 그래픽 경로로 원격 VS Code 화면 표시
+PASS - 최종 원격·클라이언트 압축파일을 새 경로에 풀어 다시 SSH 연결
+PASS - 최종 화면에서 final.txt 열기, FINAL_SAVE_PASS 입력·저장 후 서버 파일 대조
+PASS - 최종 내장 터미널에서 명령 실행 및 terminal-proof.txt의 TERMINAL_OK 확인
+PASS - 외부 인터페이스/라우트가 없는 rootless 네트워크 네임스페이스에서
+       인증 후 편집기 workbench HTML HTTP 200 확인, 서버 정상 종료
+PASS - 설치와 사용 전후 /lib64/libc.so.6 및 /lib64/libstdc++.so.6 체크섬 동일
+
+시험 중 수정한 문제:
+- patchelf 0.18로 수정한 Node가 충돌하여 0.15.0으로 고정
+- 공유 모듈의 메모리 배치 변경으로 node-pty 로딩 오류 발생
+  -> 공유 모듈은 원본 그대로 두고 ELF 실행 파일의 interpreter/RPATH만 수정
+- 원격 SSH 시작 시 온라인 자동 설치 경로 제거, 버전 불일치 시 명시적으로 중단
+- code-server 설정도 설치 폴더의 var/config 아래로 분리
+- Ghostty 자체의 단축키와 편집기 단축키 충돌을 줄이는 전용 설정 제공
+
+제한:
+- WSL2 커널 6.18.54.1에서 검증했음. 회사의 3.10 커널은 검증하지 않았음.
+- Node 24 공식 GNU/Linux x64 지원 조건은 kernel >= 4.18임.
+- CentOS 7.4 + 별도 런타임은 본 프로젝트와 Node의 공식 지원 환경이 아님.
+- 클라이언트는 기존 WSLg + Ubuntu 24.04.3 + Ghostty 1.3.1에서 검증했음.
+  WSL 배포판과 Ghostty 실행 파일 자체는 설치 묶음에 포함하지 않았음.
+- 한글 IME, 대규모 프로젝트 성능, 장시간 사용, VSIX 확장별 다운로드와 호환성,
+  회사 SSH 정책·프록시·백신·접근제어와의 조합은 검증하지 않았음.
+- 오프라인 검사는 원격 서버의 구동·인증·workbench 응답에 대한 검사임.
+  회사의 모든 통신을 차단하거나 프로그램을 격리해 주는 보안 장치가 아님.
+- 사용자 데이터, SSH 키, 실제 접속 티켓, 실행 로그는 배포 묶음에서 제외함.
+
+공식 참고:
+https://github.com/nodejs/node/blob/v24.18.0/BUILDING.md
+https://github.com/NixOS/patchelf/issues/531
+https://github.com/zenbu-labs/terminal-code
