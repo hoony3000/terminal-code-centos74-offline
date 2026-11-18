@@ -64,6 +64,8 @@ Windows에서 PowerShell 스크립트를 사용할 수 없다면, 공식 VS Code
 
 SSH로 연결한 창에서 CentOS의 폴더를 열고, 테스트 파일을 저장하고 검색한 뒤 `Terminal → New Terminal`에서 서버 명령을 실행하세요. `doctor.sh`가 성공해도 실제 Remote-SSH 접속까지 확인해야 합니다. Codex 같은 추가 확장은 자체 실행 파일과 런타임 요구사항을 따로 확인합니다.
 
+CentOS 7.4.1708 가상 머신의 `3.10.0-693.el7.x86_64` 커널과 시스템 glibc 2.17에서 서버를 검증했습니다. 외부 인터넷 경로와 시스템 Node가 없는 상태에서 일반 사용자 설치와 재설치, Node 24.22.1, ripgrep, PTY, VS Code Server 기동과 `/version` 응답을 확인했습니다. 회사 서버와 오프라인 데스크톱 사이의 Remote-SSH 연결은 현장에서 확인해야 합니다.
+
 ## 버전 업데이트와 이전 릴리스
 
 `bundle-lock.json`에서 데스크톱과 서버를 **같은 Stable 커밋**으로 함께 갱신합니다. [Microsoft 업데이트 서비스](https://update.code.visualstudio.com/api/versions/1.146.0/server-linux-x64/stable)의 SHA-256, [서버의 Node 빌드 설정](https://github.com/microsoft/vscode/blob/1.146.0/remote/package.json), [Remote-SSH Marketplace 배포](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh)의 VSIX를 기준으로 고정합니다. 전용 런타임을 바꿀 때는 출처와 체크섬을 같은 파일에 기록합니다. 다시 생성한 두 파일을 실제 오프라인 환경과 커널 3.10에서 검증하세요.

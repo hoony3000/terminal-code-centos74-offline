@@ -3,6 +3,7 @@
 
 import argparse
 import copy
+import gzip
 import hashlib
 import io
 import json
@@ -106,7 +107,11 @@ def runtime_archive(path, assets, patchelf, license_file, notices):
     library_paths = {"lib/x86_64-linux-gnu", "usr/lib/x86_64-linux-gnu"}
     libraries = {}
     notices.mkdir()
-    with tarfile.open(path, "w:gz", compresslevel=6) as output:
+    with (
+        path.open("wb") as destination,
+        gzip.GzipFile(filename="", fileobj=destination, mode="wb", mtime=0) as compressed,
+        tarfile.open(fileobj=compressed, mode="w") as output,
+    ):
         for asset, package in assets:
             package_name = asset["package"]
             copyright_path = f"usr/share/doc/{package_name}/copyright"
