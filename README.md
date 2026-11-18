@@ -1,64 +1,71 @@
-# terminal-code CentOS 7.4 오프라인 시험 묶음
+# CentOS 7.4용 VS Code Remote-SSH 오프라인 번들
 
-Windows의 최신 Linux WSL에서 terminal-code 화면을 그리고, SSH로 연결한 CentOS 7.4에서 편집 서버를 실행하는 사용자 권한 설치 묶음입니다.
+오프라인 PC의 Microsoft VS Code 데스크톱으로 오프라인 CentOS 7.4 x86_64에 SSH 접속하는 구성입니다. 인터넷이 되는 Windows 또는 Linux PC에서 두 설치 파일을 만들고, 각각의 대상 머신에 옮깁니다.
 
-**WSL CentOS 7.4에서 SSH 화면 표시, 파일 편집·저장, 내장 터미널, 외부 네트워크가 없는 상태의 서버 기동을 검증했습니다. 회사의 3.10 커널에서는 아직 검증하지 않았습니다.** 포함된 Node 24의 공식 GNU/Linux x64 지원 기준은 커널 4.18 이상입니다.
+| 항목 | 고정 버전 |
+| --- | --- |
+| Microsoft VS Code 데스크톱과 서버 | `1.146.0 Stable` |
+| 빌드 커밋 | `69047191fc427f2f92828279aae1d90d8eeda7ab` |
+| Remote - SSH | `0.128.0` |
+| Microsoft 서버 내장 Node.js | `24.22.1` |
+| CentOS용 전용 런타임 | Ubuntu glibc `2.31-0ubuntu9.18`, GCC 10.5 C++ 런타임, `patchelf 0.18.0` |
 
-## 다운로드
+Microsoft의 공식 서버 요구사항은 Linux 커널 4.18 이상입니다. CentOS 7.4의 3.10 커널에서는 전용 런타임을 적용하는 시험 구성이며, 도입 전에 실제 서버에서 아래 검증을 마쳐야 합니다. [Microsoft 요구사항과 전용 런타임 문서](https://code.visualstudio.com/docs/remote/faq#_can-i-run-vs-code-server-on-older-linux-distributions)
 
-[설치 ZIP과 체크섬 받기](https://github.com/hoony3000/terminal-code-centos74-offline/releases/tag/v0.1.0-wsl-test)
+## 1. 인터넷이 되는 머신에서 번들 만들기
 
-ZIP 안에 원격 설치 파일, WSL 화면 클라이언트, 설치 스크립트, 한국어 설명서, 체크섬, 대응 소스가 들어 있습니다. 큰 바이너리는 Releases에만 보관합니다.
-
-## 회사 CentOS에서
-
-ZIP에서 원격 설치 파일을 꺼내 사용자 작업 폴더로 옮긴 후 실행합니다.
-
-```sh
-tar -xzf terminal-code-centos74-remote.tar.gz
-bash remote/install.sh
-"$HOME/.local/lib/tode-centos74/doctor.sh"
-```
-
-기본 설치 위치는 `~/.local/lib/tode-centos74`이며 `~/.local/bin/tode` 링크를 만듭니다. 기존 설치나 명령은 덮어쓰지 않습니다. `sudo`가 필요하지 않습니다. `/lib64`와 `/usr/lib64`, 시스템 패키지, `ldconfig`, 전역 `LD_LIBRARY_PATH`를 변경하지 않습니다.
-
-전용 glibc 2.31과 C++ 런타임은 설치 폴더 안에 들어 있습니다. ELF 실행 파일에만 전용 로더와 RPATH를 적용하며 공유 모듈은 원본을 유지합니다. 내장 터미널의 `/bin/bash`는 시스템의 glibc 2.17을 사용합니다.
-
-## Windows/WSL에서
-
-**기존 WSLg + Ubuntu 24.04 + Ghostty가 필요합니다. WSL 배포판과 Ghostty 자체는 이 묶음에 포함되어 있지 않습니다.** 회사 Windows PC에서 이 조건을 사용할 수 있는지 확인해야 합니다.
-
-ZIP을 푼 폴더에서 WSL로 `install-client.sh`를 실행한 다음, WSL의 `ssh user@host`가 정상 작동하는지 확인합니다.
-
-```sh
-bash install-client.sh
-"$HOME/.local/lib/tode-client/bin/open-ghostty" --ssh user@host /absolute/project/path
-```
-
-PowerShell 실행기도 제공합니다.
+Python 3.10 이상이 필요합니다. Windows에서 WSL 없이 실행할 수 있습니다. 접속 PC의 OS에 맞는 `--client` 값을 지정하세요. 생성기를 실행하는 OS와 접속 PC의 OS는 서로 달라도 됩니다.
 
 ```powershell
-.\Start-TerminalCode.ps1 -Target user@host -Project /absolute/project/path
+# Windows에서 Windows 접속 PC용 번들 생성
+py -3 build_bundle.py --client windows-x64
 ```
 
-SSH 준비 단계의 온라인 자동 설치 코드는 제거했습니다. 서버 버전이 다르면 중단합니다. 서버는 루프백에서만 듣고 인증을 사용하며 기존 SSH 연결로 통신합니다. 새 방화벽 포트를 열지 않습니다.
+```bash
+# Linux에서 Linux 접속 PC용 번들 생성
+python3 build_bundle.py --client linux-x64
+```
 
-## 검증과 한계
+`dist/`에 `vscode-1.146.0-client-<대상>.zip`, `vscode-1.146.0-server-centos74-x64.tar.gz`, 각 체크섬이 만들어집니다. 공식 다운로드 파일은 `.bundle-cache/`에 캐시되며, 재실행할 때도 SHA-256을 확인합니다. Microsoft 서버 압축파일은 Node와 라이선스 고지를 포함한 공식 원본 형태로 동봉됩니다.
 
-- 서버: CentOS 7.4.1708, glibc 2.17, uid 1000, WSL2 커널 6.18.54.1.
-- 화면: WSL Ubuntu 24.04.3, WSLg, Ghostty 1.3.1.
-- 최종 설치 압축파일을 새 경로에 풀어 SSH 연결, 파일 저장, 내장 셸의 `TERMINAL_OK` 파일 생성을 확인했습니다.
-- 외부 인터페이스와 라우트가 없는 rootless 네트워크 네임스페이스에서 인증 후 workbench HTTP 200을 확인했습니다.
-- 시스템 libc 및 libstdc++ 체크섬은 설치·사용 전후 동일했습니다.
-- 회사의 커널, SSH 정책, 한글 IME, 확장별 다운로드, 대규모 프로젝트 성능과 장기 안정성은 검증 범위 밖입니다.
+## 2. CentOS 7.4에서 서버 설치
 
-[전체 설치 설명](README-KO.txt) · [검사 결과](TEST-RESULTS.txt) · [배포 manifest](MANIFEST.json)
+`vscode-1.146.0-server-centos74-x64.tar.gz`를 옮긴 뒤 **VS Code의 SSH 로그인에 사용할 일반 사용자**로 실행합니다.
 
-## 고정 버전과 출처
+```bash
+tar -xzf vscode-1.146.0-server-centos74-x64.tar.gz
+cd vscode-1.146.0-server-centos74-x64
+bash install.sh
+```
 
-- [terminal-code](https://github.com/zenbu-labs/terminal-code): `c6b14ebeddf2c902138c301abc84f19ac52e20e9`
-- [Pixel](https://github.com/zenbu-labs/terminal-browser/tree/pixel-v0.0.23/pixel): npm `0.0.23`, 소스 `fd5f1798b128cd71508aa534ddbf67caf05ec0b8`
-- [code-server](https://github.com/coder/code-server/releases/tag/v4.132.0): `4.132.0`, Code `1.132.0`, Node `24.18.0`
-- patched Electron `44.2.0`, patchelf `0.15.0`, Ubuntu glibc `2.31-0ubuntu9.18`
+`install.sh`는 번들 체크섬을 확인하고, 공식 서버와 전용 런타임을 `~/.vscode-server/bin/<커밋>/`에 함께 설치합니다. 공식 서버에 포함된 Node의 ELF 로더와 라이브러리 경로를 수정합니다. 시스템 Node 설치, `sudo`, 시스템 glibc 업데이트, 셸 시작 파일 편집은 필요 없습니다. 동일한 번들은 다시 실행해도 설치 상태를 진단할 수 있으며, 같은 커밋 위치에 다른 설치가 있으면 경로를 출력하고 중단합니다.
 
-원본 라이선스와 라이브러리 대응 소스는 설치 ZIP에 동봉했습니다. 이 저장소는 위 프로젝트들의 공식 CentOS 지원 배포판이 아닌 시험용 패키징입니다.
+마지막에 `SERVER_DOCTOR_OK`가 나오면 그 CentOS에서 Node, VS Code 서버 버전, ripgrep과 내장 터미널용 PTY의 기본 검사를 통과한 것입니다. 나중에 다시 확인하려면 압축을 푼 폴더에서 `bash doctor.sh`를 실행합니다. 서버 시작은 실제 접속 시 Remote-SSH가 관리합니다.
+
+## 3. 오프라인 접속 PC에서 VS Code 설치
+
+접속 PC용 ZIP을 풀고 그 폴더에서 실행합니다. Windows에서는 압축 해제 경로가 짧은 사용자 폴더를 사용하세요.
+
+```powershell
+powershell.exe -NoProfile -File .\install.ps1
+```
+
+```bash
+bash install-client.sh
+```
+
+스크립트가 압축을 푼 폴더에 이 버전 전용 VS Code와 설정 폴더를 준비하고, 동봉한 VSIX를 설치합니다. 기존 VS Code 설치와 별도의 프로필입니다. 스크립트가 출력한 실행 파일을 열어 **Remote-SSH: Connect to Host…**로 접속합니다. 접속 전에 로컬 `ssh` 명령으로 같은 계정에 접속할 수 있어야 합니다.
+
+기본 사용자 설정은 `"remote.SSH.useExecServer": false`입니다. Remote-SSH 0.128.0은 이 설정에서 `~/.vscode-server/bin/<커밋>/bin/code-server`를 찾아 실행합니다. `Output → Remote - SSH`에서 `Using commit id`와 `Found existing installation`을 확인하세요. 다른 서버 설치 위치를 쓰는 `remote.SSH.serverInstallPath` 설정이 있다면 이 번들의 경로와 맞춰야 합니다.
+
+Windows에서 PowerShell 스크립트를 사용할 수 없다면, 공식 VS Code ZIP을 풀고 `Code.exe` 옆에 `data/user-data/User/` 폴더를 만들어 동봉한 `settings.json`을 넣습니다. VS Code를 실행한 후 **Extensions: Install from VSIX…**에서 `extensions.txt`의 순서대로 설치할 수 있습니다.
+
+## 4. 양쪽이 오프라인인 상태에서 확인
+
+SSH로 연결한 창에서 CentOS의 폴더를 열고, 테스트 파일을 저장하고 검색한 뒤 `Terminal → New Terminal`에서 서버 명령을 실행하세요. `doctor.sh`가 성공해도 실제 Remote-SSH 접속까지 확인해야 합니다. Codex 같은 추가 확장은 자체 실행 파일과 런타임 요구사항을 따로 확인합니다.
+
+## 버전 업데이트와 이전 릴리스
+
+`bundle-lock.json`에서 데스크톱과 서버를 **같은 Stable 커밋**으로 함께 갱신합니다. [Microsoft 업데이트 서비스](https://update.code.visualstudio.com/api/versions/1.146.0/server-linux-x64/stable)의 SHA-256, [서버의 Node 빌드 설정](https://github.com/microsoft/vscode/blob/1.146.0/remote/package.json), [Remote-SSH Marketplace 배포](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh)의 VSIX를 기준으로 고정합니다. 전용 런타임을 바꿀 때는 출처와 체크섬을 같은 파일에 기록합니다. 다시 생성한 두 파일을 실제 오프라인 환경과 커널 3.10에서 검증하세요.
+
+이전 `tode`/Ghostty 구성은 [v0.1.0-wsl-test 태그의 설명서](https://github.com/hoony3000/terminal-code-centos74-offline/blob/v0.1.0-wsl-test/README-KO.txt)와 [기존 Release](https://github.com/hoony3000/terminal-code-centos74-offline/releases/tag/v0.1.0-wsl-test)에서 찾을 수 있습니다.

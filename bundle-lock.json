@@ -1,0 +1,90 @@
+{
+  "vscode_version": "1.146.0",
+  "channel": "stable",
+  "commit": "69047191fc427f2f92828279aae1d90d8eeda7ab",
+  "node_version": "24.22.1",
+  "desktops": {
+    "windows-x64": {
+      "filename": "VSCode-win32-x64-1.146.0.zip",
+      "url": "https://vscode.download.prss.microsoft.com/dbazure/download/stable/69047191fc427f2f92828279aae1d90d8eeda7ab/VSCode-win32-x64-1.146.0.zip",
+      "sha256": "0d47f5bbff72499c6a4a92f6d72dd8cc5ba4606185f624465032626614119d61"
+    },
+    "linux-x64": {
+      "filename": "VSCode-linux-x64-1.146.0.tar.gz",
+      "url": "https://vscode.download.prss.microsoft.com/dbazure/download/stable/69047191fc427f2f92828279aae1d90d8eeda7ab/code-stable-x64-1794340754.tar.gz",
+      "sha256": "cbdb7bde3d358c7297cf1d9d6adc16dfb1d0179501fb2c152df48593e39e3600"
+    }
+  },
+  "server": {
+    "filename": "vscode-server-linux-x64.tar.gz",
+    "url": "https://vscode.download.prss.microsoft.com/dbazure/download/stable/69047191fc427f2f92828279aae1d90d8eeda7ab/vscode-server-linux-x64.tar.gz",
+    "sha256": "6c27d8f3426f29c321609f6b499a324924ca2f170b8bb0b2df8215f11e84fd91"
+  },
+  "extensions": [
+    {
+      "id": "ms-vscode-remote.remote-ssh-edit",
+      "version": "0.87.0",
+      "engines_vscode": "^1.74.0",
+      "filename": "ms-vscode-remote.remote-ssh-edit-0.87.0.vsix",
+      "url": "https://ms-vscode-remote.gallery.vsassets.io/_apis/public/gallery/publisher/ms-vscode-remote/extension/remote-ssh-edit/0.87.0/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage",
+      "sha256": "c9e5fa440265d3b77e4ae63219014b64d714cd5280b263c5c932849fecb71ae3"
+    },
+    {
+      "id": "ms-vscode.remote-explorer",
+      "version": "0.5.0",
+      "engines_vscode": "^1.87.0",
+      "filename": "ms-vscode.remote-explorer-0.5.0.vsix",
+      "url": "https://ms-vscode.gallery.vsassets.io/_apis/public/gallery/publisher/ms-vscode/extension/remote-explorer/0.5.0/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage",
+      "sha256": "04db277ada5d771bf763d323644454e633aad48da0e81345175ac3ec08299abf"
+    },
+    {
+      "id": "ms-vscode-remote.remote-ssh",
+      "version": "0.128.0",
+      "engines_vscode": "^1.133.0",
+      "filename": "ms-vscode-remote.remote-ssh-0.128.0.vsix",
+      "url": "https://ms-vscode-remote.gallery.vsassets.io/_apis/public/gallery/publisher/ms-vscode-remote/extension/remote-ssh/0.128.0/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage",
+      "sha256": "458bfdea562840a3a4d9cb246cfe9a212c67a0c9317a8fdd0d22aeaedc82bf2c"
+    }
+  ],
+  "runtime_packages": [
+    {
+      "package": "libc6",
+      "filename": "libc6_2.31-0ubuntu9.18_amd64.deb",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.31-0ubuntu9.18_amd64.deb",
+      "sha256": "1b2281aac4935dfea1f89dfc19e445fdbb45303202af60679ccb8bf035f081a0"
+    },
+    {
+      "package": "libgcc-s1",
+      "filename": "libgcc-s1_10.5.0-1ubuntu1~20.04_amd64.deb",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-10/libgcc-s1_10.5.0-1ubuntu1~20.04_amd64.deb",
+      "sha256": "4aa7b9c9f3225df65a750ae0ff5c890fc6108c82a609b3c5abd45d211838bf3c"
+    },
+    {
+      "package": "libstdc++6",
+      "filename": "libstdc++6_10.5.0-1ubuntu1~20.04_amd64.deb",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-10/libstdc++6_10.5.0-1ubuntu1~20.04_amd64.deb",
+      "sha256": "7f9222342d3551d063bf651319ec397c39278eeeb9ab5950ae0e8c28ef0af431"
+    },
+    {
+      "package": "gcc-10-base",
+      "filename": "gcc-10-base_10.5.0-1ubuntu1~20.04_amd64.deb",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-10/gcc-10-base_10.5.0-1ubuntu1~20.04_amd64.deb",
+      "sha256": "8fac06791057b1bba6178466e160bb3ec2a795297f10e88e34daf762572ed5c0"
+    }
+  ],
+  "patchelf": {
+    "filename": "patchelf-0.18.0-x86_64.tar.gz",
+    "url": "https://github.com/NixOS/patchelf/releases/download/0.18.0/patchelf-0.18.0-x86_64.tar.gz",
+    "sha256": "ce84f2447fb7a8679e58bc54a20dc2b01b37b5802e12c57eece772a6f14bf3f0"
+  },
+  "patchelf_license": {
+    "filename": "patchelf-COPYING",
+    "url": "https://raw.githubusercontent.com/NixOS/patchelf/0.18.0/COPYING",
+    "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+  },
+  "runtime_sources": {
+    "glibc": "https://launchpad.net/ubuntu/+source/glibc/2.31-0ubuntu9.18",
+    "gcc-10": "https://launchpad.net/ubuntu/+source/gcc-10/10.5.0-1ubuntu1~20.04",
+    "patchelf": "https://github.com/NixOS/patchelf/tree/0.18.0"
+  }
+}

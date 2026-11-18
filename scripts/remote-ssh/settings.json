@@ -1,0 +1,6 @@
+{
+    "update.mode": "none",
+    "extensions.autoUpdate": "off",
+    "telemetry.telemetryLevel": "off",
+    "remote.SSH.useExecServer": false
+}
