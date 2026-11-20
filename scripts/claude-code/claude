@@ -1,0 +1,8 @@
+#!/bin/bash
+set -euo pipefail
+
+launcher=$(readlink -f -- "$0")
+bundle=$(cd -- "$(dirname -- "$launcher")" && pwd -P)
+
+export DISABLE_UPDATES=1
+exec "$bundle/lib/ld-musl-x86_64.so.1" --library-path "$bundle/lib" "$bundle/claude-bin" "$@"
