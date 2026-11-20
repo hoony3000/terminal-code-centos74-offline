@@ -4,7 +4,7 @@
 
 | 항목 | 버전 또는 대상 |
 | --- | --- |
-| Claude Code CLI | `2.1.329` (Anthropic 공식 `linux-x64-musl` 바이너리) |
+| Claude Code CLI | 빌드 시점의 Anthropic `latest` 채널 (`linux-x64-musl`) |
 | 전용 로더 | Debian musl `1.2.5-3.1~deb13u1` |
 | 대상 | CentOS 7.4 x86_64, glibc 2.17, Linux 3.10 |
 
@@ -22,17 +22,18 @@ py -3 build_bundle.py --claude
 python3 build_bundle.py --claude
 ```
 
-`dist/`에 `claude-code-2.1.329-centos74-x64.tar.gz`와 `.tar.gz.sha256`가 만들어집니다. 생성기는 공식 바이너리와 Debian 패키지를 다운로드한 뒤 [고정 SHA-256](claude-bundle-lock.json)을 비교합니다. 필요한 로더와 musl 라이선스 고지를 Debian 패키지에서 추출합니다.
+`dist/`에 `claude-code-<버전>-centos74-x64.tar.gz`와 `.tar.gz.sha256`가 만들어집니다. 생성기는 실행할 때마다 Anthropic의 `latest` 버전을 HTTPS로 조회하고, 해당 버전의 [공식 릴리스 매니페스트](https://code.claude.com/docs/en/setup#binary-integrity-and-code-signing)에 있는 SHA-256으로 바이너리를 확인합니다. 사용한 버전과 체크섬은 번들 안에 기록합니다. 전용 musl 로더는 [고정 SHA-256](claude-bundle-lock.json)으로 검증한 Debian 패키지에서 라이선스 고지와 함께 추출합니다.
 
 ## 2. CentOS 서버에서 설치
 
-두 파일을 같은 디렉터리에 옮긴 다음 Claude Code를 사용할 일반 계정으로 실행하세요.
-이 버전은 압축 파일, 압축을 푼 폴더, 설치 사본을 함께 두면 약 870 MiB를 사용합니다.
+두 파일을 같은 디렉터리에 옮긴 다음 Claude Code를 사용할 일반 계정으로 실행하세요. 아래 `version`에는 생성된 파일명에 표시된 버전을 넣으세요.
 
 ```bash
-sha256sum -c claude-code-2.1.329-centos74-x64.tar.gz.sha256
-tar -xzf claude-code-2.1.329-centos74-x64.tar.gz
-cd claude-code-2.1.329-centos74-x64
+version='<버전>'
+bundle="claude-code-${version}-centos74-x64"
+sha256sum -c "$bundle.tar.gz.sha256"
+tar -xzf "$bundle.tar.gz"
+cd "$bundle"
 bash install.sh
 "$HOME/.local/bin/claude" --version
 ```
@@ -42,10 +43,10 @@ bash install.sh
 `claude`를 짧게 입력하려면 현재 셸에서 `export PATH="$HOME/.local/bin:$PATH"`를 실행하세요. SSH 세션을 다시 열어도 적용하려면 같은 줄을 `~/.bashrc`에 추가하세요. 이후 설치 상태는 압축을 풀었던 폴더에서 다음 명령으로 다시 확인할 수 있습니다.
 
 ```bash
-bash doctor.sh "$HOME/.local/share/claude-code-centos74/versions/2.1.329"
+bash doctor.sh "$HOME/.local/share/claude-code-centos74/versions/$(cat version.txt)"
 ```
 
-CentOS 7.4 설치 이미지로 부팅한 가상 머신에서 커널 `3.10.0-693.el7.x86_64`, 시스템 glibc 2.17, 비활성화된 사용자 네임스페이스로 검사했습니다. 네트워크 장치가 없는 상태에서 일반 계정으로 설치와 재설치, 다른 디렉터리에서 설치된 런처 실행, 수동 업데이트 명령의 차단을 확인했습니다.
+Claude Code 2.1.329를 CentOS 7.4 설치 이미지로 부팅한 가상 머신에서 커널 `3.10.0-693.el7.x86_64`, 시스템 glibc 2.17, 비활성화된 사용자 네임스페이스로 검사했습니다. 네트워크 장치가 없는 상태에서 일반 계정으로 설치와 재설치, 다른 디렉터리에서 설치된 런처 실행을 확인했습니다. 새 Claude Code 릴리스의 호환성은 설치 단계에서 검사합니다.
 
 ## 3. 사내 모델에 연결
 
@@ -64,4 +65,4 @@ export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
 
 ## 업데이트
 
-런처는 `DISABLE_UPDATES=1`을 설정해 계속 같은 버전을 사용합니다. 새 버전이 필요하면 [Anthropic의 서명된 매니페스트](https://code.claude.com/docs/en/setup#verify-the-manifest-signature)에서 서명과 `platforms.linux-x64-musl.checksum`을 확인하고 `claude-bundle-lock.json`의 버전, URL, 파일명, 체크섬을 함께 갱신하세요. 새 번들의 기동을 확인한 다음 설치 스크립트가 실행기 링크를 전환합니다.
+인터넷이 되는 PC에서 `build_bundle.py --claude`를 다시 실행한 뒤 새 번들을 CentOS에서 설치하세요. 설치 스크립트는 새 버전이 기동하는 것을 확인한 다음 실행기 링크를 전환합니다. CentOS의 전용 musl 런처로 실행하는 동안 Claude Code 자체 업데이트는 꺼져 있습니다.

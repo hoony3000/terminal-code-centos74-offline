@@ -28,6 +28,8 @@ REQUIRED_LIBRARIES = {
 }
 
 CLAUDE_SCRIPTS = ROOT / "scripts" / "claude-code"
+CLAUDE_RELEASES = "https://downloads.claude.ai/claude-code-releases"
+CLAUDE_PLATFORM = "linux-x64-musl"
 MUSL_FILES = {
     "usr/lib/x86_64-linux-musl/libc.so": "lib/ld-musl-x86_64.so.1",
     "usr/share/doc/musl/copyright": "licenses/musl.copyright",
@@ -320,7 +322,41 @@ def extract_musl(package, folder):
             raise ValueError(f"Missing musl package member for {destination}")
 
 
+def read_claude_release(url, limit):
+    with urlopen(url, timeout=30) as source:
+        if not source.geturl().startswith("https://downloads.claude.ai/"):
+            raise ValueError("Unexpected Claude Code release metadata redirect")
+        data = source.read(limit + 1)
+    if len(data) > limit:
+        raise ValueError("Claude Code release metadata exceeds the expected size")
+    return data
+
+
+def latest_claude(lock):
+    version = read_claude_release(f"{CLAUDE_RELEASES}/latest", 128).decode("ascii").strip()
+    if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version):
+        raise ValueError("Invalid version from the Claude Code latest channel")
+    release = f"{CLAUDE_RELEASES}/{version}"
+    manifest = json.loads(read_claude_release(f"{release}/manifest.json", 256 * 1024))
+    platform = manifest["platforms"][CLAUDE_PLATFORM]
+    if manifest["version"] != version or platform["binary"] != "claude":
+        raise ValueError(f"Unexpected Claude Code release manifest for {version}")
+    print(f"Claude Code latest: {version}", flush=True)
+    return {
+        "claude_version": version,
+        "musl_version": lock["musl_version"],
+        "claude": {
+            "filename": f"claude-{version}-{CLAUDE_PLATFORM}",
+            "url": f"{release}/{CLAUDE_PLATFORM}/claude",
+            "sha256": platform["checksum"],
+        },
+        "musl": lock["musl"],
+    }
+
+
 def build_claude(lock, cache, output):
+    if "claude_version" not in lock and "claude" not in lock:
+        lock = latest_claude(lock)
     version = lock["claude_version"]
     if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version):
         raise ValueError("Expected a pinned Claude Code version")
@@ -378,7 +414,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     target = parser.add_mutually_exclusive_group()
     target.add_argument("--client", choices=CLIENT_SCRIPTS, help="VS Code client platform (default: windows-x64)")
-    target.add_argument("--claude", action="store_true", help="build the Claude Code server bundle")
+    target.add_argument("--claude", action="store_true", help="build the latest Claude Code server bundle")
     parser.add_argument("--lock", type=Path, help="use a custom lock file for the selected bundle")
     parser.add_argument("--cache", type=Path, default=ROOT / ".bundle-cache")
     parser.add_argument("--out", type=Path, default=ROOT / "dist")
