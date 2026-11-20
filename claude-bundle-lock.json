@@ -1,0 +1,14 @@
+{
+  "claude_version": "2.1.329",
+  "musl_version": "1.2.5-3.1~deb13u1",
+  "claude": {
+    "filename": "claude-2.1.329-linux-x64-musl",
+    "url": "https://downloads.claude.ai/claude-code-releases/2.1.329/linux-x64-musl/claude",
+    "sha256": "1ad6247ddadb174a78ce065483d860e4287f60710eabeb60ccde8b125dc8ee2f"
+  },
+  "musl": {
+    "filename": "musl_1.2.5-3.1~deb13u1_amd64.deb",
+    "url": "https://deb.debian.org/debian/pool/main/m/musl/musl_1.2.5-3.1~deb13u1_amd64.deb",
+    "sha256": "fd4231e1c189c0ebe01182747f83817593fefa7f6b690c484410646288b60058"
+  }
+}

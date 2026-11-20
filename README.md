@@ -1,5 +1,7 @@
 # CentOS 7.4용 VS Code Remote-SSH 오프라인 번들
 
+Claude Code 터미널 CLI도 같은 서버에 설치할 수 있습니다. [Claude Code 오프라인 번들 안내](CLAUDE-CODE.md)
+
 오프라인 PC의 Microsoft VS Code 데스크톱으로 오프라인 CentOS 7.4 x86_64에 SSH 접속하는 구성입니다. 인터넷이 되는 Windows 또는 Linux PC에서 두 설치 파일을 만들고, 각각의 대상 머신에 옮깁니다.
 
 | 항목 | 고정 버전 |
