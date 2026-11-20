@@ -1,25 +1,4 @@
 {
-  "vscode_version": "1.146.0",
-  "channel": "stable",
-  "commit": "69047191fc427f2f92828279aae1d90d8eeda7ab",
-  "node_version": "24.22.1",
-  "desktops": {
-    "windows-x64": {
-      "filename": "VSCode-win32-x64-1.146.0.zip",
-      "url": "https://vscode.download.prss.microsoft.com/dbazure/download/stable/69047191fc427f2f92828279aae1d90d8eeda7ab/VSCode-win32-x64-1.146.0.zip",
-      "sha256": "0d47f5bbff72499c6a4a92f6d72dd8cc5ba4606185f624465032626614119d61"
-    },
-    "linux-x64": {
-      "filename": "VSCode-linux-x64-1.146.0.tar.gz",
-      "url": "https://vscode.download.prss.microsoft.com/dbazure/download/stable/69047191fc427f2f92828279aae1d90d8eeda7ab/code-stable-x64-1794340754.tar.gz",
-      "sha256": "cbdb7bde3d358c7297cf1d9d6adc16dfb1d0179501fb2c152df48593e39e3600"
-    }
-  },
-  "server": {
-    "filename": "vscode-server-linux-x64.tar.gz",
-    "url": "https://vscode.download.prss.microsoft.com/dbazure/download/stable/69047191fc427f2f92828279aae1d90d8eeda7ab/vscode-server-linux-x64.tar.gz",
-    "sha256": "6c27d8f3426f29c321609f6b499a324924ca2f170b8bb0b2df8215f11e84fd91"
-  },
   "extensions": [
     {
       "id": "ms-vscode-remote.remote-ssh-edit",

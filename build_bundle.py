@@ -22,6 +22,11 @@ import zipfile
 ROOT = Path(__file__).resolve().parent
 SCRIPTS = ROOT / "scripts" / "remote-ssh"
 CLIENT_SCRIPTS = {"windows-x64": "install.ps1", "linux-x64": "install-client.sh"}
+VSCODE_SERVICE = "https://update.code.visualstudio.com"
+VSCODE_CLIENT_TARGETS = {
+    "windows-x64": ("win32-x64-archive", "VSCode-win32-x64-{version}.zip"),
+    "linux-x64": ("linux-x64", "VSCode-linux-x64-{version}.tar.gz"),
+}
 REQUIRED_LIBRARIES = {
     "ld-linux-x86-64.so.2", "libc.so.6", "libdl.so.2", "libgcc_s.so.1",
     "libm.so.6", "libpthread.so.0", "libstdc++.so.6",
@@ -44,6 +49,16 @@ def sha256(path):
         for chunk in iter(lambda: reader.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def read_release_metadata(url, origin, limit):
+    with urlopen(url, timeout=30) as source:
+        if not source.geturl().startswith(f"{origin}/"):
+            raise ValueError(f"Unexpected release metadata redirect for {url}")
+        data = source.read(limit + 1)
+    if len(data) > limit:
+        raise ValueError(f"Release metadata exceeds the expected size: {url}")
+    return data
 
 
 def download(asset, cache):
@@ -163,6 +178,39 @@ def runtime_archive(path, assets, patchelf, license_file, notices):
     shutil.copyfile(license_file, notices / "patchelf-COPYING")
 
 
+def latest_vscode(lock, platform):
+    target, filename = VSCODE_CLIENT_TARGETS[platform]
+    desktop_url = f"{VSCODE_SERVICE}/api/update/{target}/stable/latest"
+    desktop = json.loads(read_release_metadata(desktop_url, VSCODE_SERVICE, 16 * 1024))
+    version, commit = desktop["productVersion"], desktop["version"]
+    if not (re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version) and re.fullmatch(r"[0-9a-f]{40}", commit)):
+        raise ValueError("Invalid release version or commit from the VS Code Stable channel")
+
+    server_url = f"{VSCODE_SERVICE}/api/versions/commit:{commit}/server-linux-x64/stable"
+    server = json.loads(read_release_metadata(server_url, VSCODE_SERVICE, 16 * 1024))
+    if server["version"] != commit or server["productVersion"] != version:
+        raise ValueError(f"VS Code Server does not match desktop {version} ({commit})")
+    print(f"VS Code Stable: {version} ({commit})", flush=True)
+    return {
+        **lock,
+        "vscode_version": version,
+        "channel": "stable",
+        "commit": commit,
+        "desktops": {
+            platform: {
+                "filename": filename.format(version=version),
+                "url": desktop["url"],
+                "sha256": desktop["sha256hash"],
+            }
+        },
+        "server": {
+            "filename": "vscode-server-linux-x64.tar.gz",
+            "url": server["url"],
+            "sha256": server["sha256hash"],
+        },
+    }
+
+
 def verify_server(server, lock):
     with tarfile.open(server, "r:gz") as archive:
         files = {}
@@ -184,13 +232,16 @@ def verify_server(server, lock):
             product = json.load(source)
         with archive.extractfile(files["package.json"]) as source:
             package = json.load(source)
+    node_version = package.get("nativeBuild", {}).get("target", "")
     if (
         product.get("commit") != lock["commit"]
         or product.get("quality") != lock["channel"]
         or package.get("version") != lock["vscode_version"]
-        or package.get("nativeBuild", {}).get("target") != lock["node_version"]
+        or not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", node_version)
+        or node_version != lock.get("node_version", node_version)
     ):
-        raise ValueError("Official server version, channel, commit, or Node version does not match the lock")
+        raise ValueError("Unexpected VS Code Server version, channel, commit, or embedded Node version")
+    return node_version
 
 
 def verify_extensions(extensions, vscode_version):
@@ -241,14 +292,15 @@ def copy_asset(asset, folder):
 
 
 def build(lock, platform, cache, output):
+    if "vscode_version" not in lock and "desktops" not in lock and "server" not in lock:
+        lock = latest_vscode(lock, platform)
     build_id = lock["vscode_version"]
     if not (
         re.fullmatch(r"\d+\.\d+\.\d+", build_id)
         and re.fullmatch(r"[0-9a-f]{40}", lock["commit"])
-        and re.fullmatch(r"\d+\.\d+\.\d+", lock["node_version"])
         and lock["channel"] == "stable"
     ):
-        raise ValueError("The lock must contain a Stable desktop version, server commit, and Node version")
+        raise ValueError("Expected a Stable VS Code desktop version and server commit")
 
     client_assets = [lock["desktops"][platform], *lock["extensions"]]
     runtime = lock["runtime_packages"]
@@ -256,7 +308,7 @@ def build(lock, platform, cache, output):
     files = {asset["filename"]: download(asset, cache) for asset in client_assets + server_assets}
     server = files[lock["server"]["filename"]]
     extensions = [(asset, files[asset["filename"]]) for asset in lock["extensions"]]
-    verify_server(server, lock)
+    lock = {**lock, "node_version": verify_server(server, lock)}
     verify_extensions(extensions, build_id)
 
     output.mkdir(parents=True, exist_ok=True)
@@ -322,22 +374,13 @@ def extract_musl(package, folder):
             raise ValueError(f"Missing musl package member for {destination}")
 
 
-def read_claude_release(url, limit):
-    with urlopen(url, timeout=30) as source:
-        if not source.geturl().startswith("https://downloads.claude.ai/"):
-            raise ValueError("Unexpected Claude Code release metadata redirect")
-        data = source.read(limit + 1)
-    if len(data) > limit:
-        raise ValueError("Claude Code release metadata exceeds the expected size")
-    return data
-
-
 def latest_claude(lock):
-    version = read_claude_release(f"{CLAUDE_RELEASES}/latest", 128).decode("ascii").strip()
+    origin = "https://downloads.claude.ai"
+    version = read_release_metadata(f"{CLAUDE_RELEASES}/latest", origin, 128).decode("ascii").strip()
     if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version):
         raise ValueError("Invalid version from the Claude Code latest channel")
     release = f"{CLAUDE_RELEASES}/{version}"
-    manifest = json.loads(read_claude_release(f"{release}/manifest.json", 256 * 1024))
+    manifest = json.loads(read_release_metadata(f"{release}/manifest.json", origin, 256 * 1024))
     platform = manifest["platforms"][CLAUDE_PLATFORM]
     if manifest["version"] != version or platform["binary"] != "claude":
         raise ValueError(f"Unexpected Claude Code release manifest for {version}")

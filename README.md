@@ -4,12 +4,11 @@
 
 오프라인 PC의 Microsoft VS Code 데스크톱으로 오프라인 CentOS 7.4 x86_64에 SSH 접속하는 구성입니다. 인터넷이 되는 Windows 또는 Linux PC에서 두 설치 파일을 만들고, 각각의 대상 머신에 옮깁니다.
 
-| 항목 | 고정 버전 |
+| 항목 | 버전 선택 |
 | --- | --- |
-| Microsoft VS Code 데스크톱과 서버 | `1.146.0 Stable` |
-| 빌드 커밋 | `69047191fc427f2f92828279aae1d90d8eeda7ab` |
+| Microsoft VS Code 데스크톱과 서버 | 번들 생성 시점의 최신 Stable, 동일 빌드 커밋 |
 | Remote - SSH | `0.128.0` |
-| Microsoft 서버 내장 Node.js | `24.22.1` |
+| Microsoft 서버 내장 Node.js | 선택한 VS Code 서버에 포함된 버전 |
 | CentOS용 전용 런타임 | Ubuntu glibc `2.31-0ubuntu9.18`, GCC 10.5 C++ 런타임, `patchelf 0.18.0` |
 
 Microsoft의 공식 서버 요구사항은 Linux 커널 4.18 이상입니다. CentOS 7.4의 3.10 커널에서는 전용 런타임을 적용하는 시험 구성이며, 도입 전에 실제 서버에서 아래 검증을 마쳐야 합니다. [Microsoft 요구사항과 전용 런타임 문서](https://code.visualstudio.com/docs/remote/faq#_can-i-run-vs-code-server-on-older-linux-distributions)
@@ -28,15 +27,18 @@ py -3 build_bundle.py --client windows-x64
 python3 build_bundle.py --client linux-x64
 ```
 
-`dist/`에 `vscode-1.146.0-client-<대상>.zip`, `vscode-1.146.0-server-centos74-x64.tar.gz`, 각 체크섬이 만들어집니다. 공식 다운로드 파일은 `.bundle-cache/`에 캐시되며, 재실행할 때도 SHA-256을 확인합니다. Microsoft 서버 압축파일은 Node와 라이선스 고지를 포함한 공식 원본 형태로 동봉됩니다.
+`dist/`에 `vscode-<버전>-client-<대상>.zip`, `vscode-<버전>-server-centos74-x64.tar.gz`, 각 체크섬이 만들어집니다. 생성기는 Microsoft 업데이트 서비스에서 접속 PC용 최신 Stable과 같은 커밋의 서버를 찾고, 다운로드 파일의 SHA-256을 확인합니다. 공식 다운로드 파일은 `.bundle-cache/`에 캐시되며, Microsoft 서버 압축파일은 Node와 라이선스 고지를 포함한 공식 원본 형태로 동봉됩니다.
 
 ## 2. CentOS 7.4에서 서버 설치
 
-`vscode-1.146.0-server-centos74-x64.tar.gz`를 옮긴 뒤 **VS Code의 SSH 로그인에 사용할 일반 사용자**로 실행합니다.
+`vscode-<버전>-server-centos74-x64.tar.gz`를 옮긴 뒤 **VS Code의 SSH 로그인에 사용할 일반 사용자**로 실행합니다. 아래 `version`에는 생성된 파일명에 표시된 버전을 넣으세요.
 
 ```bash
-tar -xzf vscode-1.146.0-server-centos74-x64.tar.gz
-cd vscode-1.146.0-server-centos74-x64
+version='<버전>'
+bundle="vscode-${version}-server-centos74-x64"
+sha256sum -c "$bundle.tar.gz.sha256"
+tar -xzf "$bundle.tar.gz"
+cd "$bundle"
 bash install.sh
 ```
 
@@ -66,7 +68,7 @@ Windows에서 PowerShell 스크립트를 사용할 수 없다면, 공식 VS Code
 
 SSH로 연결한 창에서 CentOS의 폴더를 열고, 테스트 파일을 저장하고 검색한 뒤 `Terminal → New Terminal`에서 서버 명령을 실행하세요. `doctor.sh`가 성공해도 실제 Remote-SSH 접속까지 확인해야 합니다. Codex 같은 추가 확장은 자체 실행 파일과 런타임 요구사항을 따로 확인합니다.
 
-CentOS 7.4.1708 가상 머신의 `3.10.0-693.el7.x86_64` 커널과 시스템 glibc 2.17에서 서버를 검증했습니다. 외부 인터넷 경로와 시스템 Node가 없는 상태에서 일반 사용자 설치와 재설치, Node 24.22.1, ripgrep, PTY, VS Code Server 기동과 `/version` 응답을 확인했습니다. 회사 서버와 오프라인 데스크톱 사이의 Remote-SSH 연결은 현장에서 확인해야 합니다.
+CentOS 7.4.1708 가상 머신의 `3.10.0-693.el7.x86_64` 커널과 시스템 glibc 2.17에서 VS Code Server 1.146.0을 검증했습니다. 외부 인터넷 경로와 시스템 Node가 없는 상태에서 일반 사용자 설치와 재설치, 내장 Node, ripgrep, PTY, VS Code Server 기동과 `/version` 응답을 확인했습니다. 회사 서버와 오프라인 데스크톱 사이의 Remote-SSH 연결은 현장에서 확인해야 합니다.
 
 ### 재접속할 때 `StatusCheckFailed`가 나오는 경우
 
@@ -82,6 +84,6 @@ CentOS 7.4.1708 가상 머신의 `3.10.0-693.el7.x86_64` 커널과 시스템 gli
 
 ## 버전 업데이트와 이전 릴리스
 
-`bundle-lock.json`에서 데스크톱과 서버를 **같은 Stable 커밋**으로 함께 갱신합니다. [Microsoft 업데이트 서비스](https://update.code.visualstudio.com/api/versions/1.146.0/server-linux-x64/stable)의 SHA-256, [서버의 Node 빌드 설정](https://github.com/microsoft/vscode/blob/1.146.0/remote/package.json), [Remote-SSH Marketplace 배포](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh)의 VSIX를 기준으로 고정합니다. 전용 런타임을 바꿀 때는 출처와 체크섬을 같은 파일에 기록합니다. 다시 생성한 두 파일을 실제 오프라인 환경과 커널 3.10에서 검증하세요.
+새 버전으로 올리려면 인터넷이 되는 PC에서 생성기를 다시 실행하고, 생성된 데스크톱과 서버 번들을 함께 설치하세요. 사용한 VS Code 버전, 빌드 커밋, 서버 내장 Node 버전은 두 번들의 `manifest.json`에 기록됩니다. `bundle-lock.json`은 [Remote-SSH 확장](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh)과 전용 호환 런타임의 버전 및 SHA-256을 고정합니다. 다시 생성한 두 파일을 실제 오프라인 환경과 커널 3.10에서 검증하세요.
 
 이전 `tode`/Ghostty 구성은 [v0.1.0-wsl-test 태그의 설명서](https://github.com/hoony3000/terminal-code-centos74-offline/blob/v0.1.0-wsl-test/README-KO.txt)와 [기존 Release](https://github.com/hoony3000/terminal-code-centos74-offline/releases/tag/v0.1.0-wsl-test)에서 찾을 수 있습니다.
