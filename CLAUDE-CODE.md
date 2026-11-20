@@ -15,11 +15,11 @@ CentOS 7.4는 [Anthropic의 공식 지원 목록](https://code.claude.com/docs/e
 Python 3.10 이상이 필요합니다. 저장소 루트에서 실행하세요. Windows에서는 WSL 없이 실행할 수 있습니다.
 
 ```powershell
-py -3 build_claude_bundle.py
+py -3 build_bundle.py --claude
 ```
 
 ```bash
-python3 build_claude_bundle.py
+python3 build_bundle.py --claude
 ```
 
 `dist/`에 `claude-code-2.1.329-centos74-x64.tar.gz`와 `.tar.gz.sha256`가 만들어집니다. 생성기는 공식 바이너리와 Debian 패키지를 다운로드한 뒤 [고정 SHA-256](claude-bundle-lock.json)을 비교합니다. 필요한 로더와 musl 라이선스 고지를 Debian 패키지에서 추출합니다.
